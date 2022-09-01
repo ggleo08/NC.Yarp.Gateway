@@ -2,7 +2,6 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Rewrite;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.OpenApi.Models;
-using Dapr.Client;
 using FluentValidation;
 using FluentValidation.AspNetCore;
 using Yarp.Gateway.Entities;
@@ -14,35 +13,16 @@ using Yarp.Gateway.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
-#region  Dpar 服务调用：动态添加Yarp的Clusters自定义配置  -- Disabled
+#region  动态添加 Yarp 的 dapr-sidercar 访问地址
 //builder.WebHost.ConfigureAppConfiguration((context, configBuilder) =>
 //{
-//    var httpEndpoint = DaprDefaults.GetDefaultHttpEndpoint();
-//    configBuilder.AddInMemoryCollection(new[]
-//    {
-//        new KeyValuePair<string, string>("Yarp:Clusters:dapr-sidecar:Destinations:d1:Address", httpEndpoint),
-//    });
+//    configBuilder.AddDaprConfig();
 //});
 #endregion
 
 IConfiguration configuration = builder.Configuration;
 
 // Add services to the container.
-#region Add YarpDbContext
-builder.Services.AddDbContext<YarpDbContext>(options =>
-{
-    options.UseSqlServer(builder.Configuration.GetConnectionString("Default"), builder => builder.MigrationsAssembly("Yarp.Gateway"));
-    //options.UseSqlServer(builder.Configuration.GetConnectionString("Default"), b => b.MigrationsAssembly("ReverseProxy.WebApi")));
-});
-#endregion
-
-#region Add YARP、LoadFromEntityFramework Middleware
-builder.Services.AddReverseProxy()
-                // .LoadFromConfig(builder.Configuration.GetSection("Yarp"))
-                .LoadFromEntityFramework()
-                .AddRedis("10.17.9.30") // TODO...
-                ;
-#endregion
 
 #region Add Cors、MemoryCache、Controllers
 builder.Services.AddCors(options =>
@@ -63,6 +43,23 @@ builder.Services.AddControllers();
 
 builder.Services.AddMemoryCache();
 
+#endregion
+
+#region Add DbContext -> YarpDbContext
+builder.Services.AddDbContext<YarpDbContext>(options =>
+{
+    options.UseSqlServer(builder.Configuration.GetConnectionString("Default"), builder => builder.MigrationsAssembly("Yarp.Gateway"));
+    //options.UseSqlServer(builder.Configuration.GetConnectionString("Default"), b => b.MigrationsAssembly("ReverseProxy.WebApi")));
+});
+#endregion
+
+#region Add YARP、LoadFromEntityFramework Service
+builder.Services.AddReverseProxy()
+                // .LoadFromConfig(builder.Configuration.GetSection("Yarp"))
+                .LoadFromEntityFramework()
+                .AddTransforms<YarpDaprTransformProvider>() // 加上自定义转换
+                .AddRedis("10.17.9.30") // TODO...
+                ;
 #endregion
 
 #region Add AddAuthentication、Authorization-YarpCustomPolicy
@@ -118,7 +115,7 @@ builder.Services.AddSwaggerGen(options =>
 });
 #endregion
 
-#region 注入其他服务
+#region Add Yarp AppServices、Validator
 // 添加 AppServices
 builder.Services.AddTransient<IYarpRouteAppService, YarpRouteAppService>();
 builder.Services.AddTransient<IYarpClusterAppService, YarpClusterAppService>();
@@ -126,7 +123,6 @@ builder.Services.AddTransient<IYarpClusterAppService, YarpClusterAppService>();
 // 添加验证器
 builder.Services.AddSingleton<IValidator<YarpCluster>, YarpClusterValidator>();
 builder.Services.AddSingleton<IValidator<YarpRoute>, YarpRouteValidator>();
-
 #endregion
 
 
@@ -160,6 +156,9 @@ app.UseAuthorization();
 
 app.MapControllers();
 
-app.MapReverseProxy();
+app.MapReverseProxy(proxyPipeline =>
+{
+    proxyPipeline.UseLoadBalancing();
+});
 
 app.Run("http://*:5200");

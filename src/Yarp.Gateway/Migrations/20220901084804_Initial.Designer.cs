@@ -12,7 +12,7 @@ using Yarp.Gateway.EntityFrameworkCore;
 namespace Yarp.Gateway.Migrations
 {
     [DbContext(typeof(YarpDbContext))]
-    [Migration("20220829093928_Initial")]
+    [Migration("20220901084804_Initial")]
     partial class Initial
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -76,13 +76,8 @@ namespace Yarp.Gateway.Migrations
                     b.HasData(
                         new
                         {
-                            Id = new Guid("bdfdc599-5306-45cf-8ad2-8b995e84801f"),
-                            ClusterId = "cluster1"
-                        },
-                        new
-                        {
-                            Id = new Guid("f0fa724b-d1c6-4845-ac70-5ad59a860403"),
-                            ClusterId = "cluster2"
+                            Id = new Guid("347c00cf-6e72-4f9f-8f8e-2d695a3a2cd6"),
+                            ClusterId = "dapr-sidercar"
                         });
                 });
 
@@ -96,7 +91,6 @@ namespace Yarp.Gateway.Migrations
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<Guid?>("ClusterId")
-                        .IsRequired()
                         .HasColumnType("uniqueidentifier");
 
                     b.Property<string>("Health")
@@ -114,17 +108,10 @@ namespace Yarp.Gateway.Migrations
                     b.HasData(
                         new
                         {
-                            Id = new Guid("1ede2881-92c4-4689-befc-2ef019c6ef60"),
-                            Address = "http://localhost:5251",
-                            ClusterId = new Guid("bdfdc599-5306-45cf-8ad2-8b995e84801f"),
-                            Name = "Cluster1/Destination1"
-                        },
-                        new
-                        {
-                            Id = new Guid("20f20b36-9956-427c-b6b6-5b8cf711ca20"),
-                            Address = "http://localhost:5252",
-                            ClusterId = new Guid("f0fa724b-d1c6-4845-ac70-5ad59a860403"),
-                            Name = "Cluster2/Destination2"
+                            Id = new Guid("a0a0c55a-c3bf-457b-b6cb-9b609fee0fb5"),
+                            Address = "http://127.0.0.1:3500",
+                            ClusterId = new Guid("347c00cf-6e72-4f9f-8f8e-2d695a3a2cd6"),
+                            Name = "dapr-sidercar/destination1"
                         });
                 });
 
@@ -241,15 +228,15 @@ namespace Yarp.Gateway.Migrations
                     b.HasData(
                         new
                         {
-                            Id = new Guid("58d29d21-e1ec-4b25-8cfa-c06d164c6593"),
+                            Id = new Guid("f2db8dfd-8a12-4c41-bb86-14f8536a07d1"),
                             Path = "/api/first/{**catch-all}",
-                            RouteId = new Guid("32e7f141-fa42-4cf0-ad09-9c50a1fe9e3b")
+                            RouteId = new Guid("cbeaf261-a0e4-42a0-b19b-8cd66da30eaf")
                         },
                         new
                         {
-                            Id = new Guid("a15addda-c363-41df-90ff-20d7a35bf17b"),
+                            Id = new Guid("a0b45724-958c-42b4-b4fa-538f0645eb6d"),
                             Path = "/api/second/{**catch-all}",
-                            RouteId = new Guid("1a5081de-6d33-468c-92e0-35c9522e01f4")
+                            RouteId = new Guid("a4ad8801-0d3c-4737-9043-5b90fb1dac23")
                         });
                 });
 
@@ -260,31 +247,19 @@ namespace Yarp.Gateway.Migrations
                         .HasColumnType("uniqueidentifier");
 
                     b.Property<Guid?>("ClusterId")
-                        .IsRequired()
                         .HasColumnType("uniqueidentifier");
 
                     b.Property<Guid?>("DestinationId")
-                        .IsRequired()
                         .HasColumnType("uniqueidentifier");
 
                     b.Property<string>("Key")
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<Guid?>("RouteId")
-                        .IsRequired()
                         .HasColumnType("uniqueidentifier");
 
                     b.Property<string>("Value")
                         .HasColumnType("nvarchar(max)");
-
-                    b.Property<Guid?>("YarpClusterId")
-                        .HasColumnType("uniqueidentifier");
-
-                    b.Property<Guid?>("YarpDestinationId")
-                        .HasColumnType("uniqueidentifier");
-
-                    b.Property<Guid?>("YarpRouteId")
-                        .HasColumnType("uniqueidentifier");
 
                     b.HasKey("Id");
 
@@ -294,13 +269,23 @@ namespace Yarp.Gateway.Migrations
 
                     b.HasIndex("RouteId");
 
-                    b.HasIndex("YarpClusterId");
-
-                    b.HasIndex("YarpDestinationId");
-
-                    b.HasIndex("YarpRouteId");
-
                     b.ToTable("YarpMetadatas");
+
+                    b.HasData(
+                        new
+                        {
+                            Id = new Guid("2b6d3ad8-2bf9-4347-934f-9503609fd364"),
+                            Key = "Dapr",
+                            RouteId = new Guid("cbeaf261-a0e4-42a0-b19b-8cd66da30eaf"),
+                            Value = "method"
+                        },
+                        new
+                        {
+                            Id = new Guid("410ea990-d67b-4004-8843-cfcce14b9251"),
+                            Key = "Dapr",
+                            RouteId = new Guid("a4ad8801-0d3c-4737-9043-5b90fb1dac23"),
+                            Value = "method"
+                        });
                 });
 
             modelBuilder.Entity("Yarp.Gateway.Entities.YarpPassiveHealthCheckOption", b =>
@@ -340,7 +325,6 @@ namespace Yarp.Gateway.Migrations
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<Guid?>("ClusterId")
-                        .IsRequired()
                         .HasColumnType("uniqueidentifier");
 
                     b.Property<string>("CorsPolicy")
@@ -361,16 +345,16 @@ namespace Yarp.Gateway.Migrations
                     b.HasData(
                         new
                         {
-                            Id = new Guid("32e7f141-fa42-4cf0-ad09-9c50a1fe9e3b"),
+                            Id = new Guid("cbeaf261-a0e4-42a0-b19b-8cd66da30eaf"),
                             AuthorizationPolicy = "Default",
-                            ClusterId = new Guid("bdfdc599-5306-45cf-8ad2-8b995e84801f"),
-                            RouteId = "route1"
+                            ClusterId = new Guid("347c00cf-6e72-4f9f-8f8e-2d695a3a2cd6"),
+                            RouteId = "first-service"
                         },
                         new
                         {
-                            Id = new Guid("1a5081de-6d33-468c-92e0-35c9522e01f4"),
-                            ClusterId = new Guid("bdfdc599-5306-45cf-8ad2-8b995e84801f"),
-                            RouteId = "route2"
+                            Id = new Guid("a4ad8801-0d3c-4737-9043-5b90fb1dac23"),
+                            ClusterId = new Guid("347c00cf-6e72-4f9f-8f8e-2d695a3a2cd6"),
+                            RouteId = "second-service"
                         });
                 });
 
@@ -544,22 +528,6 @@ namespace Yarp.Gateway.Migrations
                     b.HasIndex("RouteId");
 
                     b.ToTable("YarpTransforms");
-
-                    b.HasData(
-                        new
-                        {
-                            Id = new Guid("54475d14-1ef8-4bed-92b4-8bcb17505066"),
-                            RouteId = new Guid("32e7f141-fa42-4cf0-ad09-9c50a1fe9e3b"),
-                            Type = 4,
-                            Value = "/api/{**catch-all}"
-                        },
-                        new
-                        {
-                            Id = new Guid("f994ad38-8eee-43f9-8001-6f418fd84455"),
-                            RouteId = new Guid("32e7f141-fa42-4cf0-ad09-9c50a1fe9e3b"),
-                            Type = 4,
-                            Value = "/api/{**catch-all}"
-                        });
                 });
 
             modelBuilder.Entity("Yarp.Gateway.Entities.YarpWebProxyConfig", b =>
@@ -606,9 +574,7 @@ namespace Yarp.Gateway.Migrations
                 {
                     b.HasOne("Yarp.Gateway.Entities.YarpCluster", "Cluster")
                         .WithMany("Destinations")
-                        .HasForeignKey("ClusterId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                        .HasForeignKey("ClusterId");
 
                     b.Navigation("Cluster");
                 });
@@ -660,34 +626,16 @@ namespace Yarp.Gateway.Migrations
             modelBuilder.Entity("Yarp.Gateway.Entities.YarpMetadata", b =>
                 {
                     b.HasOne("Yarp.Gateway.Entities.YarpCluster", "Cluster")
-                        .WithMany()
-                        .HasForeignKey("ClusterId")
-                        .OnDelete(DeleteBehavior.NoAction)
-                        .IsRequired();
+                        .WithMany("Metadata")
+                        .HasForeignKey("ClusterId");
 
                     b.HasOne("Yarp.Gateway.Entities.YarpDestination", "Destination")
-                        .WithMany()
-                        .HasForeignKey("DestinationId")
-                        .OnDelete(DeleteBehavior.NoAction)
-                        .IsRequired();
+                        .WithMany("Metadata")
+                        .HasForeignKey("DestinationId");
 
                     b.HasOne("Yarp.Gateway.Entities.YarpRoute", "Route")
-                        .WithMany()
-                        .HasForeignKey("RouteId")
-                        .OnDelete(DeleteBehavior.NoAction)
-                        .IsRequired();
-
-                    b.HasOne("Yarp.Gateway.Entities.YarpCluster", null)
                         .WithMany("Metadata")
-                        .HasForeignKey("YarpClusterId");
-
-                    b.HasOne("Yarp.Gateway.Entities.YarpDestination", null)
-                        .WithMany("Metadata")
-                        .HasForeignKey("YarpDestinationId");
-
-                    b.HasOne("Yarp.Gateway.Entities.YarpRoute", null)
-                        .WithMany("Metadata")
-                        .HasForeignKey("YarpRouteId");
+                        .HasForeignKey("RouteId");
 
                     b.Navigation("Cluster");
 
@@ -711,9 +659,7 @@ namespace Yarp.Gateway.Migrations
                 {
                     b.HasOne("Yarp.Gateway.Entities.YarpCluster", "Cluster")
                         .WithMany("ProxyRoutes")
-                        .HasForeignKey("ClusterId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                        .HasForeignKey("ClusterId");
 
                     b.Navigation("Cluster");
                 });

@@ -43,7 +43,7 @@ namespace Yarp.Gateway.Migrations
                     Name = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     Address = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     Health = table.Column<string>(type: "nvarchar(max)", nullable: true),
-                    ClusterId = table.Column<Guid>(type: "uniqueidentifier", nullable: false)
+                    ClusterId = table.Column<Guid>(type: "uniqueidentifier", nullable: true)
                 },
                 constraints: table =>
                 {
@@ -52,8 +52,7 @@ namespace Yarp.Gateway.Migrations
                         name: "FK_YarpDestinations_YarpClusters_ClusterId",
                         column: x => x.ClusterId,
                         principalTable: "YarpClusters",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
+                        principalColumn: "Id");
                 });
 
             migrationBuilder.CreateTable(
@@ -127,7 +126,7 @@ namespace Yarp.Gateway.Migrations
                     Id = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
                     RouteId = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     Order = table.Column<int>(type: "int", nullable: true),
-                    ClusterId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
+                    ClusterId = table.Column<Guid>(type: "uniqueidentifier", nullable: true),
                     AuthorizationPolicy = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     CorsPolicy = table.Column<string>(type: "nvarchar(max)", nullable: true)
                 },
@@ -138,8 +137,7 @@ namespace Yarp.Gateway.Migrations
                         name: "FK_YarpRoutes_YarpClusters_ClusterId",
                         column: x => x.ClusterId,
                         principalTable: "YarpClusters",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
+                        principalColumn: "Id");
                 });
 
             migrationBuilder.CreateTable(
@@ -255,12 +253,9 @@ namespace Yarp.Gateway.Migrations
                 columns: table => new
                 {
                     Id = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
-                    RouteId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
-                    ClusterId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
-                    DestinationId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
-                    YarpClusterId = table.Column<Guid>(type: "uniqueidentifier", nullable: true),
-                    YarpDestinationId = table.Column<Guid>(type: "uniqueidentifier", nullable: true),
-                    YarpRouteId = table.Column<Guid>(type: "uniqueidentifier", nullable: true),
+                    RouteId = table.Column<Guid>(type: "uniqueidentifier", nullable: true),
+                    ClusterId = table.Column<Guid>(type: "uniqueidentifier", nullable: true),
+                    DestinationId = table.Column<Guid>(type: "uniqueidentifier", nullable: true),
                     Key = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     Value = table.Column<string>(type: "nvarchar(max)", nullable: true)
                 },
@@ -273,28 +268,13 @@ namespace Yarp.Gateway.Migrations
                         principalTable: "YarpClusters",
                         principalColumn: "Id");
                     table.ForeignKey(
-                        name: "FK_YarpMetadatas_YarpClusters_YarpClusterId",
-                        column: x => x.YarpClusterId,
-                        principalTable: "YarpClusters",
-                        principalColumn: "Id");
-                    table.ForeignKey(
                         name: "FK_YarpMetadatas_YarpDestinations_DestinationId",
                         column: x => x.DestinationId,
                         principalTable: "YarpDestinations",
                         principalColumn: "Id");
                     table.ForeignKey(
-                        name: "FK_YarpMetadatas_YarpDestinations_YarpDestinationId",
-                        column: x => x.YarpDestinationId,
-                        principalTable: "YarpDestinations",
-                        principalColumn: "Id");
-                    table.ForeignKey(
                         name: "FK_YarpMetadatas_YarpRoutes_RouteId",
                         column: x => x.RouteId,
-                        principalTable: "YarpRoutes",
-                        principalColumn: "Id");
-                    table.ForeignKey(
-                        name: "FK_YarpMetadatas_YarpRoutes_YarpRouteId",
-                        column: x => x.YarpRouteId,
                         principalTable: "YarpRoutes",
                         principalColumn: "Id");
                 });
@@ -391,47 +371,39 @@ namespace Yarp.Gateway.Migrations
             migrationBuilder.InsertData(
                 table: "YarpClusters",
                 columns: new[] { "Id", "ClusterId", "LoadBalancingPolicy" },
-                values: new object[] { new Guid("bdfdc599-5306-45cf-8ad2-8b995e84801f"), "cluster1", null });
-
-            migrationBuilder.InsertData(
-                table: "YarpClusters",
-                columns: new[] { "Id", "ClusterId", "LoadBalancingPolicy" },
-                values: new object[] { new Guid("f0fa724b-d1c6-4845-ac70-5ad59a860403"), "cluster2", null });
+                values: new object[] { new Guid("347c00cf-6e72-4f9f-8f8e-2d695a3a2cd6"), "dapr-sidercar", null });
 
             migrationBuilder.InsertData(
                 table: "YarpDestinations",
                 columns: new[] { "Id", "Address", "ClusterId", "Health", "Name" },
-                values: new object[,]
-                {
-                    { new Guid("1ede2881-92c4-4689-befc-2ef019c6ef60"), "http://localhost:5251", new Guid("bdfdc599-5306-45cf-8ad2-8b995e84801f"), null, "Cluster1/Destination1" },
-                    { new Guid("20f20b36-9956-427c-b6b6-5b8cf711ca20"), "http://localhost:5252", new Guid("f0fa724b-d1c6-4845-ac70-5ad59a860403"), null, "Cluster2/Destination2" }
-                });
+                values: new object[] { new Guid("a0a0c55a-c3bf-457b-b6cb-9b609fee0fb5"), "http://127.0.0.1:3500", new Guid("347c00cf-6e72-4f9f-8f8e-2d695a3a2cd6"), null, "dapr-sidercar/destination1" });
 
             migrationBuilder.InsertData(
                 table: "YarpRoutes",
                 columns: new[] { "Id", "AuthorizationPolicy", "ClusterId", "CorsPolicy", "Order", "RouteId" },
-                values: new object[,]
-                {
-                    { new Guid("1a5081de-6d33-468c-92e0-35c9522e01f4"), null, new Guid("bdfdc599-5306-45cf-8ad2-8b995e84801f"), null, null, "route2" },
-                    { new Guid("32e7f141-fa42-4cf0-ad09-9c50a1fe9e3b"), "Default", new Guid("bdfdc599-5306-45cf-8ad2-8b995e84801f"), null, null, "route1" }
-                });
+                values: new object[] { new Guid("a4ad8801-0d3c-4737-9043-5b90fb1dac23"), null, new Guid("347c00cf-6e72-4f9f-8f8e-2d695a3a2cd6"), null, null, "second-service" });
+
+            migrationBuilder.InsertData(
+                table: "YarpRoutes",
+                columns: new[] { "Id", "AuthorizationPolicy", "ClusterId", "CorsPolicy", "Order", "RouteId" },
+                values: new object[] { new Guid("cbeaf261-a0e4-42a0-b19b-8cd66da30eaf"), "Default", new Guid("347c00cf-6e72-4f9f-8f8e-2d695a3a2cd6"), null, null, "first-service" });
 
             migrationBuilder.InsertData(
                 table: "YarpMatches",
                 columns: new[] { "Id", "Hosts", "Methods", "Path", "RouteId" },
                 values: new object[,]
                 {
-                    { new Guid("58d29d21-e1ec-4b25-8cfa-c06d164c6593"), null, null, "/api/first/{**catch-all}", new Guid("32e7f141-fa42-4cf0-ad09-9c50a1fe9e3b") },
-                    { new Guid("a15addda-c363-41df-90ff-20d7a35bf17b"), null, null, "/api/second/{**catch-all}", new Guid("1a5081de-6d33-468c-92e0-35c9522e01f4") }
+                    { new Guid("a0b45724-958c-42b4-b4fa-538f0645eb6d"), null, null, "/api/second/{**catch-all}", new Guid("a4ad8801-0d3c-4737-9043-5b90fb1dac23") },
+                    { new Guid("f2db8dfd-8a12-4c41-bb86-14f8536a07d1"), null, null, "/api/first/{**catch-all}", new Guid("cbeaf261-a0e4-42a0-b19b-8cd66da30eaf") }
                 });
 
             migrationBuilder.InsertData(
-                table: "YarpTransforms",
-                columns: new[] { "Id", "Key", "RouteId", "Type", "Value" },
+                table: "YarpMetadatas",
+                columns: new[] { "Id", "ClusterId", "DestinationId", "Key", "RouteId", "Value" },
                 values: new object[,]
                 {
-                    { new Guid("54475d14-1ef8-4bed-92b4-8bcb17505066"), null, new Guid("32e7f141-fa42-4cf0-ad09-9c50a1fe9e3b"), 4, "/api/{**catch-all}" },
-                    { new Guid("f994ad38-8eee-43f9-8001-6f418fd84455"), null, new Guid("32e7f141-fa42-4cf0-ad09-9c50a1fe9e3b"), 4, "/api/{**catch-all}" }
+                    { new Guid("2b6d3ad8-2bf9-4347-934f-9503609fd364"), null, null, "Dapr", new Guid("cbeaf261-a0e4-42a0-b19b-8cd66da30eaf"), "method" },
+                    { new Guid("410ea990-d67b-4004-8843-cfcce14b9251"), null, null, "Dapr", new Guid("a4ad8801-0d3c-4737-9043-5b90fb1dac23"), "method" }
                 });
 
             migrationBuilder.CreateIndex(
@@ -471,21 +443,6 @@ namespace Yarp.Gateway.Migrations
                 name: "IX_YarpMetadatas_RouteId",
                 table: "YarpMetadatas",
                 column: "RouteId");
-
-            migrationBuilder.CreateIndex(
-                name: "IX_YarpMetadatas_YarpClusterId",
-                table: "YarpMetadatas",
-                column: "YarpClusterId");
-
-            migrationBuilder.CreateIndex(
-                name: "IX_YarpMetadatas_YarpDestinationId",
-                table: "YarpMetadatas",
-                column: "YarpDestinationId");
-
-            migrationBuilder.CreateIndex(
-                name: "IX_YarpMetadatas_YarpRouteId",
-                table: "YarpMetadatas",
-                column: "YarpRouteId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_YarpPassiveHealthCheckOptions_HealthCheckOptionId",

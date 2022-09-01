@@ -29,7 +29,7 @@ namespace Yarp.Gateway.Entities
         /// </summary>
         public Guid? ClusterId { get; set; }
 
-        [ForeignKey("ClusterId")]
+        //[ForeignKey("ClusterId")]
         public virtual YarpCluster Cluster { get; set; }
 
         /// <summary>

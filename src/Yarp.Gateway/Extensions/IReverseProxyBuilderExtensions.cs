@@ -20,5 +20,14 @@ namespace Yarp.Gateway.Extensions
             builder.AddEntityFrameworkProvider();
             return builder;
         }
+
+        public static IConfigurationBuilder AddDaprConfig(this IConfigurationBuilder configurationBuilder)
+        {
+            var httpEndpoint = DaprDefaults.GetDefaultHttpEndpoint(); //参考Dapr.Client，获取到dapr-sidecar的url
+            return configurationBuilder.AddInMemoryCollection(new[]
+            {
+                new KeyValuePair<string, string>("Yarp:Clusters:dapr-sidecar:Destinations:d1:Address", httpEndpoint),
+            });
+        }
     }
 }

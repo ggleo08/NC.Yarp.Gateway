@@ -24,7 +24,6 @@ namespace Yarp.Gateway.Entities
         public string? Health { get; set; }
         public Guid? ClusterId { get; set; }
 
-        [ForeignKey("ClusterId")]
         public virtual YarpCluster Cluster { get; set; }
 
         /// <summary>

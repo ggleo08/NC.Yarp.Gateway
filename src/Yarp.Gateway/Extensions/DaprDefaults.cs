@@ -88,4 +88,19 @@ namespace Yarp.Gateway.Extensions
             return grpcEndpoint;
         }
     }
+
+
+    public static class DaprYarpConstants
+    {
+        public static class MetaKeys
+        {
+            public const string Dapr = nameof(Dapr);
+        }
+
+        public static class DaprAct
+        {
+            public const string Method = "method";
+            // public const string GrpcSvc = nameof(GrpcSvc);
+        }
+    }
 }

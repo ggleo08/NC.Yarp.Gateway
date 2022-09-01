@@ -10,18 +10,18 @@ namespace Yarp.Gateway.Entities
 
         public Guid? RouteId { get; set; }
 
-        [ForeignKey("RouteId")]
+        //[ForeignKey("RouteId")]
         public virtual YarpRoute Route { get; set; }
 
         public Guid? ClusterId { get; set; }
 
-        [ForeignKey("ClusterId")]
+        //[ForeignKey("ClusterId")]
         public virtual YarpCluster Cluster { get; set; }
 
 
         public Guid? DestinationId { get; set; }
 
-        [ForeignKey("DestinationId")]
+        //[ForeignKey("DestinationId")]
         public virtual YarpDestination Destination { get; set; }
     }
 }

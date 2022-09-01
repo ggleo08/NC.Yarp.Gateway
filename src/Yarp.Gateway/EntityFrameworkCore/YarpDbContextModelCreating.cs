@@ -1,5 +1,6 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Yarp.Gateway.Entities;
+using Yarp.Gateway.Extensions;
 
 namespace Yarp.Gateway.EntityFrameworkCore
 {
@@ -19,7 +20,8 @@ namespace Yarp.Gateway.EntityFrameworkCore
             //BuildHealthCheckOptions(modelBuilder);
             //BuildProxyRoute(modelBuilder);
             //BuildProxyMatch(modelBuilder);
-            BuildProxyMetadata(modelBuilder);
+
+            // BuildProxyMetadata(modelBuilder);
 
             // 初始化种子数据
             InitSeedingData(modelBuilder);
@@ -100,7 +102,7 @@ namespace Yarp.Gateway.EntityFrameworkCore
             {
                 builder.HasMany(p => p.Metadata)
                        .WithOne()
-                       .OnDelete(DeleteBehavior.Cascade);
+                       .OnDelete(DeleteBehavior.Cascade).IsRequired(false);
                 builder.HasMany(p => p.Transforms)
                        .WithOne()
                        .OnDelete(DeleteBehavior.Cascade);
@@ -127,9 +129,9 @@ namespace Yarp.Gateway.EntityFrameworkCore
         {
             modelBuilder.Entity<YarpMetadata>(builder =>
             {
-                builder.HasOne(p => p.Route).WithMany().OnDelete(DeleteBehavior.NoAction);
-                builder.HasOne(p => p.Cluster).WithMany().OnDelete(DeleteBehavior.NoAction);
-                builder.HasOne(p => p.Destination).WithMany().OnDelete(DeleteBehavior.NoAction);
+                builder.HasOne(p => p.Route).WithMany().OnDelete(DeleteBehavior.NoAction).HasForeignKey(p => p.RouteId).IsRequired(false);
+                builder.HasOne(p => p.Cluster).WithMany().OnDelete(DeleteBehavior.NoAction).HasForeignKey(p => p.ClusterId).IsRequired(false);
+                builder.HasOne(p => p.Destination).WithMany().OnDelete(DeleteBehavior.NoAction).HasForeignKey(p => p.DestinationId).IsRequired(false);
             });
         }
         #endregion
@@ -139,24 +141,23 @@ namespace Yarp.Gateway.EntityFrameworkCore
         {
             var clusters = new List<YarpCluster>()
             {
-                new YarpCluster(){ Id = Guid.NewGuid(), ClusterId = "cluster1" },
-                new YarpCluster(){ Id = Guid.NewGuid(), ClusterId = "cluster2" },
+                //new YarpCluster(){ Id = Guid.NewGuid(), ClusterId = "cluster1" },
+                //new YarpCluster(){ Id = Guid.NewGuid(), ClusterId = "cluster2" },
+                new YarpCluster(){ Id = Guid.NewGuid(), ClusterId = "dapr-sidercar" }
             };
 
             var destinations = new List<YarpDestination>()
             {
-                new YarpDestination(){ Id = Guid.NewGuid(), Name="Cluster1/Destination1", ClusterId = clusters[0].Id , Address="http://localhost:5251" },
-                new YarpDestination(){ Id = Guid.NewGuid(), Name="Cluster2/Destination2", ClusterId = clusters[1].Id , Address="http://localhost:5252" }
+                //new YarpDestination(){ Id = Guid.NewGuid(), Name="Cluster1/Destination1", ClusterId = clusters[0].Id , Address = "http://localhost:5251" },
+                //new YarpDestination(){ Id = Guid.NewGuid(), Name="Cluster2/Destination2", ClusterId = clusters[1].Id , Address = "http://localhost:5252" }
+                new YarpDestination(){ Id = Guid.NewGuid(), Name="dapr-sidercar/destination1", ClusterId = clusters[0].Id , Address = DaprDefaults.GetDefaultHttpEndpoint() }
             };
 
             var routes = new List<YarpRoute>()
             {
-                new YarpRoute(){ Id = Guid.NewGuid(), RouteId = "route1", ClusterId = clusters[0].Id, AuthorizationPolicy = "Default" },
-                new YarpRoute(){ Id = Guid.NewGuid(), RouteId = "route2", ClusterId = clusters[1].Id, /*AuthorizationPolicy = "Default"*/ },
+                new YarpRoute(){ Id = Guid.NewGuid(), RouteId = "first-service", ClusterId = clusters[0].Id, AuthorizationPolicy = "Default" },
+                new YarpRoute(){ Id = Guid.NewGuid(), RouteId = "second-service", ClusterId = clusters[0].Id, /*AuthorizationPolicy = "Default"*/ },
             };
-
-            //routes[0].Transforms = new List<YarpTransform>() { new YarpTransform() { Id = Guid.NewGuid(), Type = EnumTransformType.PathPattern, Value = "/api/{**catch-all}" } };
-            //routes[1].Transforms = new List<YarpTransform>() { new YarpTransform() { Id = Guid.NewGuid(), Type = EnumTransformType.PathPattern, Value = "/api/{**catch-all}" } };
 
             var matches = new List<YarpMatch>()
             {
@@ -164,17 +165,24 @@ namespace Yarp.Gateway.EntityFrameworkCore
                 new YarpMatch(){ Id = Guid.NewGuid(), RouteId = routes[1].Id, Path = "/api/second/{**catch-all}" },
             };
 
-            var transforms = new List<YarpTransform>()
-            {
-                new YarpTransform(){ Id = Guid.NewGuid(), RouteId = routes[0].Id, Type = EnumTransformType.PathPattern, Value = "/api/{**catch-all}" },
-                new YarpTransform(){ Id = Guid.NewGuid(), RouteId = routes[1].Id, Type = EnumTransformType.PathPattern, Value = "/api/{**catch-all}" },
+            //var transformType = EnumTransformType.PathPattern;
+            //var transforms = new List<YarpTransform>()
+            //{
+            //    new YarpTransform(){ Id = Guid.NewGuid(), RouteId = routes[0].Id, Type = transformType, Key = transformType.ToString(), Value = "/api/{**catch-all}" },
+            //    new YarpTransform(){ Id = Guid.NewGuid(), RouteId = routes[1].Id, Type = transformType, Key = transformType.ToString(), Value = "/api/{**catch-all}" },
+            //};
+
+            var metadatas = new List<YarpMetadata>() {
+                new YarpMetadata(){ Id = Guid.NewGuid(), RouteId = routes[0].Id, Key = DaprYarpConstants.MetaKeys.Dapr, Value = DaprYarpConstants.DaprAct.Method },
+                new YarpMetadata(){ Id = Guid.NewGuid(), RouteId = routes[1].Id, Key = DaprYarpConstants.MetaKeys.Dapr, Value = DaprYarpConstants.DaprAct.Method },
             };
 
             modelBuilder.Entity<YarpCluster>().HasData(clusters);
             modelBuilder.Entity<YarpDestination>().HasData(destinations);
             modelBuilder.Entity<YarpRoute>().HasData(routes);
             modelBuilder.Entity<YarpMatch>().HasData(matches);
-            modelBuilder.Entity<YarpTransform>().HasData(transforms);
+            //modelBuilder.Entity<YarpTransform>().HasData(transforms);
+            modelBuilder.Entity<YarpMetadata>().HasData(metadatas);
         }
         #endregion
     }

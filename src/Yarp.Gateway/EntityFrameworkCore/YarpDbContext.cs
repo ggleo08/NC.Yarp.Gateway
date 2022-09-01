@@ -1,4 +1,5 @@
 ﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Yarp.Gateway.Entities;
 
 namespace Yarp.Gateway.EntityFrameworkCore
@@ -25,6 +26,13 @@ namespace Yarp.Gateway.EntityFrameworkCore
         public DbSet<YarpSessionAffinityConfig> YarpSessionAffinityOptions { get; set; }
         public DbSet<YarpSessionAffinityOptionSetting> YarpSessionAffinityOptionSettings { get; set; }
         public DbSet<YarpTransform> YarpTransforms { get; set; }
+
+
+        protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
+        {
+            optionsBuilder.ReplaceService<IMigrationsSqlGenerator, YarpSqlServerMigrationsSqlGenerator>();
+        }
+
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
