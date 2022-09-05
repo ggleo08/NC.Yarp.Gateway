@@ -54,7 +54,7 @@ builder.Services.AddDbContext<YarpDbContext>(options =>
 });
 #endregion
 
-#region Add YARP¡¢LoadFromEntityFramework Service
+#region Add YARP¡¢LoadFromEntityFramework Service¡¢Redis PubSub
 builder.Services.AddReverseProxy()
                 // .LoadFromConfig(builder.Configuration.GetSection("Yarp"))
                 .LoadFromEntityFramework()
@@ -96,12 +96,12 @@ builder.Services.AddSingleton<IValidator<YarpCluster>, YarpClusterValidator>();
 builder.Services.AddSingleton<IValidator<YarpRoute>, YarpRouteValidator>();
 #endregion
 
-#region Ìí¼Ó DarClient
+#region Add DarClient
 builder.Services.AddDaprClient();
 #endregion
 
 var app = builder.Build();
-
+app.UseRouting();
 app.UseCors();
 
 #region Swagger Redirect
@@ -135,6 +135,12 @@ app.MapControllers();
 app.MapReverseProxy(proxyPipeline =>
 {
     proxyPipeline.UseLoadBalancing();
+});
+
+app.UseCloudEvents();
+app.UseEndpoints(endpoints =>
+{
+    endpoints.MapSubscribeHandler();
 });
 
 app.Run("http://*:5200");

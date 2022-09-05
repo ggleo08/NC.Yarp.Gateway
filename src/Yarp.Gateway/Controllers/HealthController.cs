@@ -3,10 +3,10 @@
 namespace Yarp.Gateway.Controllers
 {
     [ApiController]
+    [Route("api/[controller]")]
     public class HealthController : Controller
     {
-        [HttpGet]
-        [Route("/api/health")]
+        [HttpGet("health")]
         public IActionResult Index()
         {
             return Ok("OK");
