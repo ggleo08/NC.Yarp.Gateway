@@ -23,14 +23,16 @@ namespace Yarp.Gateway.RedisPubSub
             //subscriber.Subscribe("YarpConfigChanged", (channel, value) =>
             //{
             //    _yarpStore.ReloadConfig();
+            //    _logger.LogInformation("YarpConfigChanged Subscribe...");
             //});
+
             _yarpStore.ConfigurationChange -= _yarpStore.ReloadConfig;
             _yarpStore.ConfigurationChange += async () =>
             {
-                //subscriber.Publish("YarpConfigChanged", string.Empty);
+                // subscriber.Publish("YarpConfigChanged", string.Empty);
                 await _daprClient.PublishEventAsync("pubsub", "YarpConfigChanged");
 
-                _logger.LogInformation("publish YarpConfigChanged event...");
+                _logger.LogInformation("YarpConfigChanged event publish...");
             };
         }
 

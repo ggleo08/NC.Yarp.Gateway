@@ -37,7 +37,7 @@ namespace Yarp.Gateway.Controllers
             return Ok();
         }
 
-        [HttpPost]
+        [HttpPost("YarpConfigChangedSubscribe")]
         [Topic("pubsub", "YarpConfigChanged")]
         public async Task<IActionResult> ConfigChangedSubscribe()
         {
@@ -47,7 +47,7 @@ namespace Yarp.Gateway.Controllers
             // stream.ReadAsync(buffer, 0, buffer.Length);
             // var content = Encoding.UTF8.GetString(buffer);
             await Task.Run(() => _yarpStore.ReloadConfig());
-            _logger.LogInformation("YarpConfigChanged Subscribe...");
+            _logger.LogInformation("YarpConfigChanged event Subscribe...");
             return Ok("ok");
         }
     }
