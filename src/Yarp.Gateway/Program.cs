@@ -24,22 +24,23 @@ IConfiguration configuration = builder.Configuration;
 
 // Add services to the container.
 
-#region Add Cors、MemoryCache、Controllers
+#region Add Cors、MemoryCache、Controllers、Dapr
 builder.Services.AddCors(options =>
 {
     options.AddDefaultPolicy(builder =>
     {
         builder.WithOrigins(configuration["App:CorsOrigins"].Split(",", StringSplitOptions.RemoveEmptyEntries))
-                .SetIsOriginAllowedToAllowWildcardSubdomains()
-                .AllowAnyHeader()
-                .AllowAnyMethod()
-                .AllowCredentials(); ;
+               .SetIsOriginAllowedToAllowWildcardSubdomains()
+               .AllowAnyHeader()
+               .AllowAnyMethod()
+               .AllowCredentials();
+               // .AllowAnyOrigin();
     });
 });
 
 builder.Services.AddFluentValidationAutoValidation().AddFluentValidationClientsideAdapters();
 
-builder.Services.AddControllers();
+builder.Services.AddControllers().AddDapr();
 
 builder.Services.AddMemoryCache();
 
@@ -57,7 +58,7 @@ builder.Services.AddDbContext<YarpDbContext>(options =>
 builder.Services.AddReverseProxy()
                 // .LoadFromConfig(builder.Configuration.GetSection("Yarp"))
                 .LoadFromEntityFramework()
-                .AddTransforms<YarpDaprTransformProvider>() // 加上自定义转换
+                // .AddTransforms<YarpDaprTransformProvider>() // 加上自定义转换
                 .AddRedis("10.17.9.30") // TODO...
                 ;
 #endregion
@@ -82,37 +83,7 @@ builder.Services.AddAuthorization(options =>
 #region Add Swagger
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen(options =>
-{
-    options.SwaggerDoc("v1.0", new OpenApiInfo
-    {
-        Title = "Gateway API",
-        Version = "v1.0",
-        Description = "Gateway API v1.0",
-
-        #region 服务条款 Url、API 联系信息、API 许可信息
-        // TermsOfService = new Uri("https://example.com/terms"),
-
-        // API 联系信息
-        //Contact = new OpenApiContact
-        //{
-        //    Name = "Example Contact",
-        //    Url = new Uri("https://example.com/contact")
-        //},
-
-        //  API 许可信息
-        //License = new OpenApiLicense
-        //{
-        //    Name = "Example License",
-        //    Url = new Uri("https://example.com/license")
-        //}
-        #endregion
-    });
-    // ?
-    options.DocInclusionPredicate((docName, description) => true);
-    // ?
-    options.CustomSchemaIds(type => type.FullName);
-});
+builder.Services.AddSwaggerGen();
 #endregion
 
 #region Add Yarp AppServices、Validator
@@ -125,8 +96,13 @@ builder.Services.AddSingleton<IValidator<YarpCluster>, YarpClusterValidator>();
 builder.Services.AddSingleton<IValidator<YarpRoute>, YarpRouteValidator>();
 #endregion
 
+#region 添加 DarClient
+builder.Services.AddDaprClient();
+#endregion
 
 var app = builder.Build();
+
+app.UseCors();
 
 #region Swagger Redirect
 // Configure the HTTP request pipeline.
@@ -135,7 +111,7 @@ if (app.Environment.IsDevelopment())
     //app.UseSwagger();
     //app.UseSwaggerUI(options =>
     //{
-    //    options.SwaggerEndpoint("/swagger/v1/swagger.json", "v1.0");
+    //    options.SwaggerEndpoint("/swagger/v1/swagger.json", "Gateway v1.0");
     //    options.RoutePrefix = String.Empty;
     //});
 
