@@ -54,7 +54,7 @@ namespace Yarp.Gateway.Extensions
                 YarpProxyConfig newConfig = null;
                 try
                 {
-                    newConfig = _strore.GetConfig() as YarpProxyConfig;
+                    newConfig = _strore.GetConfigAsync().Result as YarpProxyConfig;
                 }
                 catch (Exception ex)
                 {
@@ -84,6 +84,7 @@ namespace Yarp.Gateway.Extensions
                 }
             }
         }
+
         private static class Log
         {
             private static readonly Action<ILogger, Exception> _errorSignalingChange = LoggerMessage.Define(

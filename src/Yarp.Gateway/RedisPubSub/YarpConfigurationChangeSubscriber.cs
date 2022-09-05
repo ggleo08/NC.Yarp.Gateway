@@ -26,7 +26,10 @@ namespace Yarp.Gateway.RedisPubSub
             //    _logger.LogInformation("YarpConfigChanged Subscribe...");
             //});
 
-            _yarpStore.ConfigurationChange -= _yarpStore.ReloadConfig;
+            _yarpStore.ConfigurationChange -= async () =>
+            {
+                await _yarpStore.ReloadConfigAsync();
+            };
             _yarpStore.ConfigurationChange += async () =>
             {
                 // subscriber.Publish("YarpConfigChanged", string.Empty);

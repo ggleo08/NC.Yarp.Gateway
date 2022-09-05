@@ -1,10 +1,12 @@
-﻿using Microsoft.AspNetCore.Diagnostics.HealthChecks;
+﻿using Dapr.Client;
+using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Primitives;
 using System.Diagnostics.Metrics;
+using System.Runtime.CompilerServices;
 using System.Security.Authentication;
-using System.Security.Cryptography.X509Certificates;
+//using System.Security.Cryptography.X509Certificates;
 using System.Security.Cryptography.Xml;
 using System.Text.Json;
 using System.Text.Json.Serialization;
@@ -20,37 +22,61 @@ namespace Yarp.Gateway.EntityFrameworkCore
     {
 
         private YarpConfigurationReloadToken _reloadToken = new YarpConfigurationReloadToken();
-        private IServiceProvider _sp;
-        private IMemoryCache _cache;
-        private ILogger Logger;
         public event YarpConfigurationChangeHandler ConfigurationChange;
 
-        public YarpConfigurationStore(IServiceProvider sp, IMemoryCache cache, ILoggerFactory loggerFactory)
+        private IServiceProvider _serviceProvider;
+        //private IMemoryCache _cache;
+        private readonly DaprClient _daprClient;
+        private readonly ILogger<YarpConfigurationStore> _logger;
+
+        public YarpConfigurationStore(IServiceProvider serviceProvider,
+                                      IMemoryCache cache,
+                                      DaprClient daprClient,
+                                      ILoggerFactory loggerFactory)
         {
-            Logger = loggerFactory.CreateLogger<YarpConfigurationStore>();
-            _sp = sp;
-            _cache = cache;
-            ConfigurationChange += ReloadConfig;
+            this._serviceProvider = serviceProvider;
+            //this._cache = cache;
+            this._daprClient = daprClient;
+            this._logger = loggerFactory.CreateLogger<YarpConfigurationStore>();
+
+            this.ConfigurationChange += this.ReloadConfig;
         }
 
         // Used by tests
-        internal LinkedList<WeakReference<X509Certificate2>> Certificates { get; } = new LinkedList<WeakReference<X509Certificate2>>();
+        //internal LinkedList<WeakReference<X509Certificate2>> Certificates { get; } = new LinkedList<WeakReference<X509Certificate2>>();
 
-        public IProxyConfig GetConfig()
+        public async Task<IProxyConfig> GetConfigAsync()
         {
-            Logger.LogInformation("GetConfig");
-            var exist = _cache.TryGetValue<IProxyConfig>("ReverseProxyConfig", out IProxyConfig config);
-            if (exist)
+            _logger.LogInformation("GetConfig");
+
+            var cacheConfig = await _daprClient.GetStateAsync<IProxyConfig>("statestore", "ReverseProxyConfig");
+            if (cacheConfig != null)
             {
-                return config;
+                return cacheConfig;
             }
             else
             {
-                config = GetFromDb();
-                SetConfig(config);
+                cacheConfig = await GetFromDbAsync();
+                await SetConfigAsync(cacheConfig);
 
-                return config;
+                return cacheConfig;
             }
+
+            #region MemoryCache
+            //var exist = _cache.TryGetValue<IProxyConfig>("ReverseProxyConfig", out IProxyConfig config);
+            //if (exist)
+            //{
+            //    return config;
+            //}
+            //else
+            //{
+            //    config = GetFromDb();
+            //    SetConfig(config);
+
+            //    return config;
+            //}
+            #endregion
+
         }
 
         public IChangeToken GetReloadToken()
@@ -60,47 +86,53 @@ namespace Yarp.Gateway.EntityFrameworkCore
 
         public void Reload()
         {
-            Logger.LogInformation("ChangeConfig");
+            _logger.LogInformation("ChangeConfig");
             if (ConfigurationChange != null)
                 ConfigurationChange();
         }
 
         public void ReloadConfig()
         {
-            Logger.LogInformation("SetConfig");
-            SetConfig();
+            ReloadConfigAsync().Wait();
+        }
+
+        public async Task ReloadConfigAsync()
+        {
+            _logger.LogInformation("SetConfig");
+            await SetConfigAsync();
             Interlocked.Exchange<YarpConfigurationReloadToken>(ref this._reloadToken, new YarpConfigurationReloadToken()).OnReload();
         }
 
-        private void SetConfig()
+        private async Task SetConfigAsync()
         {
-            var config = GetFromDb();
-            SetConfig(config);
+            var config = await GetFromDbAsync();
+            await SetConfigAsync(config);
         }
 
-        private void SetConfig(IProxyConfig config)
+        private async Task SetConfigAsync(IProxyConfig config)
         {
-            _cache.Set("ReverseProxyConfig", config);
+            await _daprClient.SaveStateAsync("statestore", "ReverseProxyConfig", config);
+            // _cache.Set("ReverseProxyConfig", config);
         }
 
-        private IProxyConfig GetFromDb()
+        private async Task<IProxyConfig> GetFromDbAsync()
         {
-            var dbContext = _sp.CreateScope().ServiceProvider.GetRequiredService<YarpDbContext>();
-            var routers = dbContext.Set<YarpRoute>()
-                .Include(r => r.Match).ThenInclude(m => m.Headers)
-                .Include(r => r.Metadata)
-                .Include(r => r.Transforms)
-                .Include(r => r.Cluster)
-                .AsNoTracking().ToList();
-            var clusters = dbContext.Set<YarpCluster>()
-                .Include(c => c.Metadata)
-                .Include(c => c.Destinations)
-                .Include(c => c.SessionAffinity).ThenInclude(s => s.Cookie)
-                .Include(c => c.HttpRequest)
-                .Include(c => c.HttpClient)
-                .Include(c => c.HealthCheck).ThenInclude(h => h.Active)
-                .Include(c => c.HealthCheck).ThenInclude(h => h.Passive)
-                .AsNoTracking().ToList();
+            var dbContext = _serviceProvider.CreateScope().ServiceProvider.GetRequiredService<YarpDbContext>();
+            var routers = await dbContext.Set<YarpRoute>()
+                                         .Include(r => r.Match).ThenInclude(m => m.Headers)
+                                         .Include(r => r.Metadata)
+                                         .Include(r => r.Transforms)
+                                         .Include(r => r.Cluster)
+                                         .AsNoTracking().ToListAsync();
+            var clusters = await dbContext.Set<YarpCluster>()
+                                          .Include(c => c.Metadata)
+                                          .Include(c => c.Destinations)
+                                          .Include(c => c.SessionAffinity).ThenInclude(s => s.Cookie)
+                                          .Include(c => c.HttpRequest)
+                                          .Include(c => c.HttpClient)
+                                          .Include(c => c.HealthCheck).ThenInclude(h => h.Active)
+                                          .Include(c => c.HealthCheck).ThenInclude(h => h.Passive)
+                                          .AsNoTracking().ToListAsync();
 
             var newConfig = new YarpProxyConfig();
             foreach (var cluster in clusters)
@@ -245,7 +277,7 @@ namespace Yarp.Gateway.EntityFrameworkCore
                 IsCaseSensitive = routeQueryParameter.IsCaseSensitive,
             };
         }
-      
+
         private static SessionAffinityConfig? CreateSessionAffinityOptions(YarpSessionAffinityConfig sessionAffinityOptions)
         {
             if (sessionAffinityOptions is null)
@@ -282,7 +314,7 @@ namespace Yarp.Gateway.EntityFrameworkCore
                 Expiration = sessionAffinityCookie.Expiration.ReadTimeSpan()
             };
         }
-       
+
         private static HealthCheckConfig? CreateHealthCheckOptions(YarpHealthCheckOption healthCheckOptions)
         {
             if (healthCheckOptions is null)

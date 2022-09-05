@@ -6,11 +6,11 @@ namespace Yarp.Gateway.EntityFrameworkCore
     public interface IYarpConfigurationStore
     {
         public event YarpConfigurationChangeHandler ConfigurationChange;
-        IProxyConfig GetConfig();
+        Task<IProxyConfig> GetConfigAsync();
 
         void Reload();
 
-        void ReloadConfig();
+        Task ReloadConfigAsync();
         
         IChangeToken GetReloadToken();
     }

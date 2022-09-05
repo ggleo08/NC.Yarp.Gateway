@@ -46,7 +46,7 @@ namespace Yarp.Gateway.Controllers
             // stream.Position = 0L;
             // stream.ReadAsync(buffer, 0, buffer.Length);
             // var content = Encoding.UTF8.GetString(buffer);
-            await Task.Run(() => _yarpStore.ReloadConfig());
+            await Task.Run(() => _yarpStore.ReloadConfigAsync());
             _logger.LogInformation("YarpConfigChanged event Subscribe...");
             return Ok("ok");
         }
