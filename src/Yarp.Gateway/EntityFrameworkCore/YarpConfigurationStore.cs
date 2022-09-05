@@ -49,14 +49,14 @@ namespace Yarp.Gateway.EntityFrameworkCore
         {
             _logger.LogInformation("GetConfig");
 
-            var cacheConfig = await _daprClient.GetStateAsync<IProxyConfig>("statestore", "ReverseProxyConfig");
+            var cacheConfig = await _daprClient.GetStateAsync<YarpProxyConfig>("statestore", "ReverseProxyConfig");
             if (cacheConfig != null)
             {
                 return cacheConfig;
             }
             else
             {
-                cacheConfig = await GetFromDbAsync();
+                cacheConfig = await GetFromDbAsync() as YarpProxyConfig;
                 await SetConfigAsync(cacheConfig);
 
                 return cacheConfig;
