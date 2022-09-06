@@ -1,5 +1,4 @@
-﻿using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Primitives;
+﻿using Microsoft.Extensions.Primitives;
 using System.Diagnostics.CodeAnalysis;
 using Yarp.Gateway.Entities;
 using Yarp.Gateway.EntityFrameworkCore;

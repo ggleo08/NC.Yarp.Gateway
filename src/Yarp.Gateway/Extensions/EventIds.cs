@@ -1,4 +1,4 @@
-﻿namespace Yarp.Gateway.EntityFrameworkCore
+﻿namespace Yarp.Gateway.Extensions
 {
     public class EventIds
     {

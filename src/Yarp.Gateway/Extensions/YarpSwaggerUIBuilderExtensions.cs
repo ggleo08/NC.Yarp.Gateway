@@ -1,6 +1,4 @@
-﻿using Swashbuckle.AspNetCore.SwaggerUI;
-using System.Diagnostics.Metrics;
-using Yarp.ReverseProxy.Configuration;
+﻿using Yarp.ReverseProxy.Configuration;
 
 namespace Yarp.Gateway.Extensions
 {

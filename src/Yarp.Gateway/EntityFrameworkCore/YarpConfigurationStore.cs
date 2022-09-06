@@ -1,5 +1,4 @@
-﻿using Dapr.Client;
-using Microsoft.AspNetCore.Diagnostics.HealthChecks;
+﻿using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Primitives;
@@ -10,11 +9,11 @@ using System.Security.Authentication;
 using System.Security.Cryptography.Xml;
 using System.Text.Json;
 using System.Text.Json.Serialization;
+using Dapr.Client;
 using Yarp.Gateway.Entities;
 using Yarp.Gateway.Extensions;
 using Yarp.ReverseProxy.Configuration;
 using Yarp.ReverseProxy.Forwarder;
-using static Grpc.Core.Metadata;
 
 namespace Yarp.Gateway.EntityFrameworkCore
 {

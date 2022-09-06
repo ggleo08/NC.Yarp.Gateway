@@ -1,6 +1,4 @@
-﻿using Grpc.Core;
-using Microsoft.EntityFrameworkCore;
-using System.Diagnostics.Metrics;
+﻿using Microsoft.EntityFrameworkCore;
 using Yarp.Gateway.Entities;
 using Yarp.Gateway.EntityFrameworkCore;
 
