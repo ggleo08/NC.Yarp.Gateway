@@ -1,0 +1,84 @@
+version: "3.4"
+
+services:
+  orderservice:
+    image: orderservice
+    build:
+      context: .
+      dockerfile: OrderService/Dockerfile
+    container_name: "orderservice"
+    ports:
+      - "5130:50001" # Dapr instances communicate over gRPC so we need to expose the gRPC port
+      - "5100:80"
+    depends_on:
+      - placement
+    networks:
+      - ordermanagement
+  orderservice-dapr:
+    image: "daprio/daprd:latest"
+    command: [
+        "./daprd",
+        "-app-id", "orderservice-dapr",
+        "-app-port", "5110",
+        "dapr-http-port", "5120",
+        "-dapr-grpc-port", "5130",
+        "-placement-host-address", "placement:5010", # Dapr's placement service can be reach via the docker DNS entry
+        "-components-path", "/components",
+      ]
+    volumes:
+      - "./components/:/components"
+    depends_on:
+      - orderservice
+    container_name: "orderservice-dapr"
+    network_mode: "service:orderservice" # Attach the dapr service to the nodeapp network namespace
+
+  paymentservice:
+    image: paymentservice
+    build:
+      context: .
+      dockerfile: PaymentService/Dockerfile
+    container_name: "paymentservice"
+    ports:
+      - "5230:50001"
+      - "5200:80"
+    depends_on:
+      - placement
+    networks:
+      - ordermanagement
+  paymentservice-dapr:
+    image: "daprio/daprd:latest"
+    command:
+      [
+        "./daprd",
+        "-app-id", "paymentservice-dapr",
+        "-app-port", "5210",
+        "dapr-http-port", "5220",
+        "-dapr-grpc-port","5230",
+        "-placement-host-address", "placement:5010",
+        "-components-path", "/components",
+      ]
+    volumes:
+      - "./components/:/components"
+    depends_on:
+      - paymentservice
+    container_name: "paymentservice-dapr"
+    network_mode: "service:paymentservice"
+
+  placement:
+    image: "daprio/dapr"
+    command: ["./placement", "-port", "5010"]
+    container_name: "placement"
+    ports:
+      - "5010:5010"
+    networks:
+      - ordermanagement
+
+  redis:
+    image: "redis:alpine"
+    container_name: "redis"
+    ports:
+      - "5020:6379"
+    networks:
+      - ordermanagement
+networks:
+  ordermanagement:
