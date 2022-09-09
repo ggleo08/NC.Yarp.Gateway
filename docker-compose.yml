@@ -1,0 +1,38 @@
+version: "3.4"
+
+services:
+  basketservice:
+    image: ${DOCKER_REGISTRY-}basketservice:${TAG:-latest}
+    container_name: "basketservice"
+    environment:
+      - TZ=Asia/Shanghai
+    build:
+      context: .
+      dockerfile: BasketService/Dockerfile
+    networks:
+      - daprnetwork
+    ports:
+      - "5300:80"
+  basketservice-dapr:
+    image: "daprio/daprd:latest"
+    container_name: "basketservice-dapr"
+    command: [
+        "./daprd",
+        "-app-id", "basketservice",
+        "-app-port", "80",
+        "-placement-host-address", "placement:5010", 
+        "-components-path", "/components",
+        "-config", "/configuration/config.yaml",
+      ]
+    environment:
+      - TZ=Asia/Shanghai
+    volumes:
+      - "./dapr/components/:/components"
+      - "./dapr/configuration/:/configuration"
+    depends_on:
+      - basketservice
+    network_mode: "service:basketservice" 
+
+networks:
+    daprnetwork:
+      external: true

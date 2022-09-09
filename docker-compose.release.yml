@@ -1,0 +1,73 @@
+version: "3.4"
+
+services:
+  orderservice:
+    image: ${DOCKER_REGISTRY-}orderservice:${TAG:-latest}
+    container_name: "orderservice"
+    environment:
+      - TZ=Asia/Shanghai
+      - ASPNETCORE_URLS=http://+:80
+    build:
+      context: .
+      dockerfile: OrderService/Dockerfile
+    networks:
+      - daprnetwork
+    ports:
+      - "5100:80"
+  orderservice-dapr:
+    image: "daprio/daprd:latest"
+    container_name: "orderservice-dapr"
+    command: [
+        "./daprd",
+        "-app-id", "orderservice",
+        "-app-port", "80",
+        "-placement-host-address", "placement:5010", 
+        "-components-path", "/components",
+        "-config", "/configuration/config.yaml",
+      ]
+    environment:
+      - TZ=Asia/Shanghai
+    volumes:
+      - "./dapr/components/:/components"
+      - "./dapr/configuration/:/configuration"
+    depends_on:
+      - orderservice
+    network_mode: "service:orderservice" 
+
+  paymentservice:
+    image: ${DOCKER_REGISTRY-}paymentservice:${TAG:-latest}
+    container_name: "paymentservice"
+    environment:
+      - TZ=Asia/Shanghai
+      - ASPNETCORE_URLS=http://+:80
+    build:
+      context: .
+      dockerfile: PaymentService/Dockerfile
+    networks:
+      - daprnetwork
+    ports:
+      - "5200:80"
+  paymentservice-dapr:
+    image: "daprio/daprd:latest"
+    container_name: "paymentservice-dapr"
+    command:
+      [
+        "./daprd",
+        "-app-id", "paymentservice",
+        "-app-port", "80",
+        "-placement-host-address", "placement:5010",
+        "-components-path", "/components",
+        "-config", "/configuration/config.yaml",
+      ]
+    environment:
+      - TZ=Asia/Shanghai
+    volumes:
+      - "./dapr/components/:/components"
+      - "./dapr/configuration/:/configuration"
+    depends_on:
+      - paymentservice
+    network_mode: "service:paymentservice"
+
+networks:
+    daprnetwork:
+      external: true
