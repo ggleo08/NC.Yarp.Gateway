@@ -1,7 +1,6 @@
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Rewrite;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.OpenApi.Models;
 using FluentValidation;
 using FluentValidation.AspNetCore;
 using Yarp.Gateway.Entities;
@@ -34,7 +33,6 @@ builder.Services.AddCors(options =>
                .AllowAnyHeader()
                .AllowAnyMethod()
                .AllowCredentials();
-               // .AllowAnyOrigin();
     });
 });
 
@@ -54,15 +52,6 @@ builder.Services.AddDbContext<YarpDbContext>(options =>
 });
 #endregion
 
-#region Add YARP、LoadFromEntityFramework Service、Redis PubSub
-builder.Services.AddReverseProxy()
-                // .LoadFromConfig(builder.Configuration.GetSection("Yarp"))
-                .LoadFromEntityFramework()
-                // .AddTransforms<YarpDaprTransformProvider>() // 加上自定义转换
-                .AddRedis("10.17.9.30") // TODO...
-                ;
-#endregion
-
 #region Add AddAuthentication、Authorization-YarpCustomPolicy
 
 builder.Services.AddAuthentication(options =>
@@ -78,6 +67,15 @@ builder.Services.AddAuthorization(options =>
 {
     options.AddPolicy("YarpCustomPolicy", policy => policy.RequireAuthenticatedUser());
 });
+#endregion
+
+#region Add YARP、LoadFromEntityFramework Service、Redis PubSub
+builder.Services.AddReverseProxy()
+                // .LoadFromConfig(configuration.GetSection("Yarp"))
+                .LoadFromEntityFramework()
+                // 加上自定义路由转换
+                .AddTransforms<YarpDaprTransformProvider>()
+                .AddRedis("10.17.9.30");
 #endregion
 
 #region Add Swagger
@@ -132,14 +130,16 @@ app.UseAuthorization();
 
 app.MapControllers();
 
-app.MapReverseProxy(proxyPipeline =>
-{
-    proxyPipeline.UseLoadBalancing();
-});
-
+// 将云事件中间件添加到中间件管道
 app.UseCloudEvents();
 app.UseEndpoints(endpoints =>
 {
+    // 反向代理路由添加到路由表
+    endpoints.MapReverseProxy(proxyPipeline =>
+    {
+        proxyPipeline.UseLoadBalancing();
+    });
+    // 将响应请求的端点从 dapr运行时 映射到 /dapr/subscribe
     endpoints.MapSubscribeHandler();
 });
 

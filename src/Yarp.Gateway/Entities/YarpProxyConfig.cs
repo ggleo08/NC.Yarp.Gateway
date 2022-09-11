@@ -5,11 +5,11 @@ namespace Yarp.Gateway.Entities
 {
     public class YarpProxyConfig : IProxyConfig
     {
-        public List<RouteConfig> Routes { get; internal set; } = new List<RouteConfig>();
+        public List<RouteConfig> Routes { get; set; } = new List<RouteConfig>();
 
-        public List<ClusterConfig> Clusters { get; internal set; } = new List<ClusterConfig>();
+        public List<ClusterConfig> Clusters { get; set; } = new List<ClusterConfig>();
 
-        public IChangeToken ChangeToken { get; internal set; }
+        public IChangeToken ChangeToken { get; set; }
 
         IReadOnlyList<RouteConfig> IProxyConfig.Routes => Routes;
 

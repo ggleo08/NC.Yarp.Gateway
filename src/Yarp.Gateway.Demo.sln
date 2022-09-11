@@ -5,9 +5,9 @@ VisualStudioVersion = 17.3.32804.467
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Yarp.Gateway", "Yarp.Gateway\Yarp.Gateway.csproj", "{931ED6E2-73B3-4750-9CD0-251800108D8C}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Yarp.Service.First", "Yarp.Service.First\Yarp.Service.First.csproj", "{BC734D2D-3F30-4E1E-9176-375848786D17}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Yarp.Service.First", "Yarp.Service.First\Yarp.Service.First.csproj", "{BC734D2D-3F30-4E1E-9176-375848786D17}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Yarp.Service.Second", "Yarp.Service.Second\Yarp.Service.Second.csproj", "{5C0EA486-73B0-4D09-92E9-01ACA086BA48}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Yarp.Service.Second", "Yarp.Service.Second\Yarp.Service.Second.csproj", "{5C0EA486-73B0-4D09-92E9-01ACA086BA48}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

@@ -2,13 +2,8 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Primitives;
-using System.Diagnostics.Metrics;
-using System.Runtime.CompilerServices;
 using System.Security.Authentication;
 //using System.Security.Cryptography.X509Certificates;
-using System.Security.Cryptography.Xml;
-using System.Text.Json;
-using System.Text.Json.Serialization;
 using Dapr.Client;
 using Yarp.Gateway.Entities;
 using Yarp.Gateway.Extensions;
@@ -31,12 +26,12 @@ namespace Yarp.Gateway.EntityFrameworkCore
         public YarpConfigurationStore(IServiceProvider serviceProvider,
                                       IMemoryCache cache,
                                       DaprClient daprClient,
-                                      ILoggerFactory loggerFactory)
+                                      ILogger<YarpConfigurationStore> logger)
         {
             this._serviceProvider = serviceProvider;
             //this._cache = cache;
             this._daprClient = daprClient;
-            this._logger = loggerFactory.CreateLogger<YarpConfigurationStore>();
+            this._logger = logger;
 
             this.ConfigurationChange += this.ReloadConfig;
         }
