@@ -1,0 +1,14 @@
+apiVersion: dapr.io/v1alpha1
+kind: Configuration
+metadata:
+  name: daprConfig
+  namespace: default
+spec:
+  tracing:
+    enabled: true
+    samplingRate: "1"
+    expandParams: true
+    includeBody: true
+    zipkin:
+      # 使用 host.docker.internal 替换 dapr_zipkin 容器名host
+      endpointAddress: http://host.docker.internal:9411/api/v2/spans 

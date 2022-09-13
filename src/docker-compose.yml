@@ -1,33 +1,121 @@
-version: "3.3"
+version: "3.4"
 services:
+  gateway-service:
+    image: gateway-service
+    build:
+      context: ./
+    container_name: gateway-service
+    ports:
+      - 5200:5200
+    # depends_on:
+      # - dapr_placement
+      # - dapr_redis
+      # - dapr_zipkin
+      # - mssql_server
+    environment:
+      - TZ=Asia/Shanghai
+      - ASPNETCORE_URLS=http://+:80
+      - ASPNETCORE_ENVIRONMENT=Development
+    volumes:
+      - /etc/localtime:/etc/localtime
+    networks:
+      - c-dapr-network
+
+  gateway-service-dapr:
+    image: "daprio/daprd:latest"
+    container_name: "gateway-service-dapr"
+    command: [
+      "./daprd",
+      "-app-id", "gateway",
+      "-app-port", "5200",
+      "-placement-host-address", "placement:6050", # Dapr's placement service can be reach via the docker DNS entry
+      "-components-path", "/dapr/components",
+      "-config", "/dapr/tracing-zipkin.yaml"
+    ]
+    environment:
+      - TZ=Asia/Shanghai
+    volumes:
+        - "./dapr/:/dapr" # Mount our dapr folder for the runtime to use
+    depends_on:
+      - gateway-service
+    # annotations:
+    #   dapr.io/config: "tracing-zipkin"
+    network_mode: "service:gateway-service" # Attach the first-service service to the c-dapr-network network namespace
+  
   first-service:
-    image: first-service-image
+    image: first-service
     build: 
       context:  ./
       dockerfile: Dockerfile-first
     container_name: first-service
     ports:
         - 5251:5251
+    depends_on:
+      - gateway-service
     environment:
-        - ASPNETCORE_ENVIRONMENT=Production
+      - TZ=Asia/Shanghai
+      - ASPNETCORE_ENVIRONMENT=Development
     volumes:
       - /etc/localtime:/etc/localtime
+    networks:
+      - c-dapr-network
 
+  first-service-dapr:
+    image: "daprio/daprd:latest"
+    container_name: first-service-dapr
+    command: [
+      "./daprd",
+      "-app-id", "first",
+      "-app-port", "5251",
+      "-placement-host-address", "placement:6050", # Dapr's placement service can be reach via the docker DNS entry
+      "-components-path", "/dapr/components",
+      "-config", "/dapr/tracing-zipkin.yaml"
+    ]
+    environment:
+      - TZ=Asia/Shanghai
+    volumes:
+        - "./dapr/:/dapr" # Mount our dapr folder for the runtime to use
+    depends_on:
+      - first-service
+    network_mode: "service:first-service" # Attach the first-service service to the c-dapr-network network namespace
+  
   second-service:
-    image: second-service-image
+    image: second-service
     build: 
       context:  ./
-      dockerfile: Dockerfile-seond
+      dockerfile: Dockerfile-second
     container_name: second-service
     ports:
         - 5252:5252
+    depends_on:
+      - gateway-service
     environment:
-        - ASPNETCORE_ENVIRONMENT=Development
+      - TZ=Asia/Shanghai
+      - ASPNETCORE_ENVIRONMENT=Development
     volumes:
-      - /etc/localtime:/etc/localtime 
-  
-  # redis:
-  #   image: redis:6.0
-  #   container_name: redis
-  #   ports:
-  #       - 6379:6379    
+      - /etc/localtime:/etc/localtime
+    networks:
+      - c-dapr-network
+
+  second-service-dapr:
+    image: "daprio/daprd:latest"
+    container_name: "second-service-dapr"
+    command: [
+      "./daprd",
+      "-app-id", "second",
+      "-app-port", "5252",
+      "-placement-host-address", "placement:6050", # Dapr's placement service can be reach via the docker DNS entry
+      "-components-path", "/dapr/components",
+      "-config", "/dapr/tracing-zipkin.yaml"
+    ]
+    environment:
+      - TZ=Asia/Shanghai
+    volumes:
+        - "./dapr/:/dapr" # Mount our dapr folder for the runtime to use
+    depends_on:
+      - second-service
+    network_mode: "service:second-service" # Attach the first-service service to the c-dapr-network network namespace
+
+networks:
+  c-dapr-network:
+    external: true
